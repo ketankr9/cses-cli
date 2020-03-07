@@ -25,6 +25,7 @@ cses show 1068
 cses solve 1068
 cses submit 1068.filename.cpp
 
+// TODO
 cses result 1068
 
 // optional
@@ -71,14 +72,7 @@ func login(sess *Session, pass string) bool {
 	if loginRequest(params, sess.Cookie) == sess.User {
 		return true
 	}
-
 	return false
-}
-
-func generateNewSess(sess *Session) {
-
-	sess.Cookie, sess.Csrf = newCookieCsrf()
-
 }
 
 func promtLogin(sess *Session) bool {
@@ -92,7 +86,7 @@ func promtLogin(sess *Session) bool {
 	scanner.Scan()
 	PASSWORD := scanner.Text()
 
-	generateNewSess(sess)
+	sess.Cookie, sess.Csrf = newCookieCsrf()
 	ok := login(sess, PASSWORD)
 
 	if !ok {
@@ -145,6 +139,7 @@ func printResult(link string, sess *Session) {
 	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	s.Prefix = "PENDING "
 	s.Start()
+	defer s.Stop()
 
 	for true {
 		status, text := printResultRequest(link, sess.Cookie)
@@ -155,9 +150,6 @@ func printResult(link string, sess *Session) {
 			break
 		}
 	}
-
-	s.Stop()
-
 }
 
 func submit(filename string, sess *Session) {
@@ -191,19 +183,21 @@ func getTask(task string, sess *Session) (string, bool) {
 		s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 		s.Prefix = "Downloading "
 		s.Start()
+		defer s.Stop()
 
 		text := downloadTask(task)
+		if text == "" {
+			return "", false
+		}
 		cacheSet(filename, text, sess.Root)
-
-		s.Stop()
 	}
 
 	return getTaskFromCache(task, sess.Root), true
 }
 
 func show(task string, sess *Session) {
-	text, ok := getTask(task, sess)
-	if ok {
+	text, exist := getTask(task, sess)
+	if exist {
 		fmt.Println(text)
 	} else {
 		fmt.Println("Task Doesn't Exist")
@@ -212,7 +206,11 @@ func show(task string, sess *Session) {
 
 func solve(task string, sess *Session) {
 
-	text, _ := getTask(task, sess)
+	text, exist := getTask(task, sess)
+	if !exist {
+		fmt.Println("Task Doesn't Exist")
+	}
+
 	filename := task + ".task.cpp"
 
 	writeCodeFile(filename, text, cpptemplate)

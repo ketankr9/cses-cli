@@ -341,6 +341,7 @@ var unicodeMap = map[string]string{
 	"\\lbrack":      "[",
 	"\\rbrack":      "]",
 
-	"\\[": "[",
-	"\\]": "]",
+	"\\[":    "[",
+	"\\]":    "]",
+	"\\dots": "...",
 }
