@@ -103,3 +103,4 @@ Result:ACCEPTED
 
 *	Supports only C++ currently, will add support for other languages on request.
 *	A modifiable template code file.
+*	Auto commit to Github
