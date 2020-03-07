@@ -371,3 +371,32 @@ Object.keys(unicodeMap).forEach(function(key) {
       value = value[0]
     console.log('"\\\\'+key+'"  : "\\u'+value+'",');
 });
+
+x = {
+        '\\uparrow': '2191',
+      '\\downarrow': '2193',
+      '\\updownarrow': '2195',
+      '\\Uparrow': '21D1',
+      '\\Downarrow': '21D3',
+      '\\Updownarrow': '21D5',
+      '\\backslash': '\\',
+      '\\rangle': '27E9',
+      '\\langle': '27E8',
+      '\\rbrace': '}',
+      '\\lbrace': '{',
+      '\\}': '}',
+      '\\{': '{',
+      '\\rceil': '2309',
+      '\\lceil': '2308',
+      '\\rfloor': '230B',
+      '\\lfloor': '230A',
+      '\\lbrack': '[',
+      '\\rbrack': ']'
+}
+console.log();
+Object.keys(x).forEach(function(key) {
+    value = x[key];
+    if(Array.isArray(value))
+      value = value[0]
+    console.log('"\\'+key+'"  : "\\u'+value+'",');
+});

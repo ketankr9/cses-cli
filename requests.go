@@ -1,10 +1,10 @@
 package main
 
-import(
-	"net/http"
-	"io"
-	"strings"
+import (
 	"bytes"
+	"io"
+	"net/http"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
@@ -20,8 +20,8 @@ import(
 // 	fmt.Println(resp.StatusCode)
 // }
 
-func newfileUploadRequestPost(uri string, body *bytes.Buffer, cookie string, contentType string)(*http.Request, error){
-	
+func newfileUploadRequestPost(uri string, body *bytes.Buffer, cookie string, contentType string) (*http.Request, error) {
+
 	req, err := http.NewRequest("POST", uri, body)
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Cookie", cookie)
@@ -47,7 +47,7 @@ func submitRequest(opts map[string]string, filename string, cookie string) strin
 }
 
 func loginRequest(params string, cookie string) string {
-	
+
 	body := strings.NewReader(params)
 	req, err := http.NewRequest("POST", "https://cses.fi/login", body)
 	check(err)
@@ -83,7 +83,7 @@ func listRequest(cookie string) io.ReadCloser {
 	return resp.Body
 }
 
-func printResultRequest(link string, cookie string)(string, string){
+func printResultRequest(link string, cookie string) (string, string) {
 	req, err := http.NewRequest("GET", "https://cses.fi"+link, nil)
 	check(err)
 
@@ -119,18 +119,18 @@ func downloadTask(task string) string {
 	title, err := doc.Find("title").Html()
 	check(err)
 
-	return title+out
+	return title + out
 }
 
-func newCookieCsrf()(string, string){
+func newCookieCsrf() (string, string) {
 	req, err := http.NewRequest("GET", "https://cses.fi/login/", nil)
 	check(err)
 
 	resp, err := http.DefaultClient.Do(req)
 	check(err)
-	
+
 	defer resp.Body.Close()
-	
+
 	cookie := resp.Header.Get("Set-Cookie")
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)

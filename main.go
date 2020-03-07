@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
-	"path/filepath"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/briandowns/spinner"
@@ -48,8 +48,9 @@ int main(){
 }
 `
 
-func autoLogin(sess *Session) bool {
+func initSess(sess *Session) bool {
 	sess.Root = filepath.Join(UserHomeDir(), ".cses")
+	os.MkdirAll(sess.Root, os.ModePerm)
 
 	out, ok := cacheGet("login.json", sess.Root)
 	if !ok {
@@ -57,6 +58,10 @@ func autoLogin(sess *Session) bool {
 	}
 
 	json.Unmarshal(out, sess)
+	if sess.Csrf == "" || sess.User == "" || sess.Cookie == "" {
+		return false
+	}
+
 	return true
 }
 
@@ -74,20 +79,16 @@ func generateNewSess(sess *Session) {
 
 	sess.Cookie, sess.Csrf = newCookieCsrf()
 
-	sess.Editor = "sublime-text.subl"
-	
-	sess.Root = filepath.Join(UserHomeDir(), ".cses")
-	os.MkdirAll(sess.Root, os.ModePerm)
 }
 
-func freshLogin(sess *Session) bool {
+func promtLogin(sess *Session) bool {
 	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Print("username: ")
+	fmt.Print("Username: ")
 	scanner.Scan()
 	sess.User = scanner.Text()
 
-	fmt.Print("password: ")
+	fmt.Print("Password: ")
 	scanner.Scan()
 	PASSWORD := scanner.Text()
 
@@ -98,10 +99,7 @@ func freshLogin(sess *Session) bool {
 		return false
 	}
 
-	out, err := json.Marshal(sess)
-	check(err)
-
-	cacheSet("login.json", string(out), sess.Root)
+	updateConfig(sess)
 
 	return true
 }
@@ -153,7 +151,7 @@ func printResult(link string, sess *Session) {
 		s.Prefix = status + " "
 
 		if status == "READY" || status == "" {
-			fmt.Println("\n"+text)
+			fmt.Println("\n" + text)
 			break
 		}
 	}
@@ -178,7 +176,7 @@ func submit(filename string, sess *Session) {
 		"target":     "problemset",
 		"option":     option,
 	}
-	
+
 	link := submitRequest(opts, filename, sess.Cookie)
 	printResult(link, sess)
 }
@@ -218,6 +216,15 @@ func solve(task string, sess *Session) {
 	filename := task + ".task.cpp"
 
 	writeCodeFile(filename, text, cpptemplate)
+
+	if sess.Editor == "" {
+		scanner := bufio.NewScanner(os.Stdin)
+		fmt.Print("Editor: ")
+		scanner.Scan()
+		sess.Editor = scanner.Text()
+
+		updateConfig(sess)
+	}
 	exec.Command(sess.Editor, filename).Output()
 }
 
@@ -234,11 +241,11 @@ func main() {
 	}
 
 	sess := &Session{}
-	isLogged := autoLogin(sess)
+	isLogged := initSess(sess)
 
 	switch flag.Arg(0) {
 	case "login":
-		if !freshLogin(sess) {
+		if !promtLogin(sess) {
 			fmt.Println("Login failed")
 		} else {
 			fmt.Println("Logged in successfully")
@@ -269,9 +276,6 @@ func main() {
 	case "stat":
 		fmt.Println("sw stat 1068")
 		stat("stat 1068")
-
-	// case "test":
-	// 	test(sess)
 
 	default:
 		fmt.Println("sw default")
