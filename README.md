@@ -99,5 +99,7 @@ Status:READY
 Result:ACCEPTED
 ```
 
-**Issues**
+>I will add support for these features only if people show some love to this repo since current commit suffices my need.
+
 *	Supports only C++ currently, will add support for other languages on request.
+*	A modifiable template code file.
