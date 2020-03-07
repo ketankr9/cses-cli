@@ -104,3 +104,4 @@ Result:ACCEPTED
 *	Supports only C++ currently, will add support for other languages on request.
 *	A modifiable template code file.
 *	Auto commit to Github repository
+*	Clean LaTex based $equation$ from problem statement. Eg $1 ≤ n ≤ 10^6$
