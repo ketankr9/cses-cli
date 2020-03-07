@@ -1,5 +1,5 @@
 # cses-cli
-solve cses.fi problemset via command line
+solve cses.fi problemset via command line. Inspired from awesome [leetcode-cli](https://github.com/skygragon/leetcode-cli).
 
 
 * Download the required binary from [https://github.com/ketankr9/cses-cli/releases](https://github.com/ketankr9/cses-cli/releases)
