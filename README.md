@@ -3,6 +3,7 @@ solve cses.fi problemset via command line
 
 
 * Download the required binary from [https://github.com/ketankr9/cses-cli/releases](https://github.com/ketankr9/cses-cli/releases)
+* Install [lynx](https://www.google.com/search?q=install+lynx+&oq=install+lynx). For ubuntu use ```sudo apt install lynx```
 * Rename the binary to cses-cli and move it to PATH
 * Just type these command in the terminal one by one and you will understand how to use it.
 ```
