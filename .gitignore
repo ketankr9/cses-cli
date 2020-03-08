@@ -1,5 +1,6 @@
 api.sh
 *.cpp
+notes.txt
 
 # Binaries for programs and plugins
 *.exe

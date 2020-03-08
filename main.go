@@ -31,12 +31,14 @@ cses result 1068
 // optional
 cses stat 1068
 */
+
 type Session struct {
-	Csrf   string `json:"csrfToken"`
-	User   string `json:"username"`
-	Cookie string `json:"cookie"`
-	Root   string `json:"root"`
-	Editor string `json:"editor"`
+	Csrf   string       `json:"csrf"`
+	User   string       `json:"username"`
+	Cookie string       `json:"cookie"`
+	Root   string       `json:"root"`
+	Editor string       `json:"editor"`
+	Github githubConfig `json:"github"`
 }
 
 var cpptemplate = `
@@ -78,9 +80,7 @@ func login(sess *Session, pass string) bool {
 func promtLogin(sess *Session) bool {
 	scanner := bufio.NewScanner(os.Stdin)
 
-	fmt.Print("Username: ")
-	scanner.Scan()
-	sess.User = scanner.Text()
+	updateIfNew(scanner, &sess.User, "Username")
 
 	fmt.Print("Password: ")
 	scanner.Scan()
@@ -134,7 +134,7 @@ func list(sess *Session) {
 
 }
 
-func printResult(link string, sess *Session) {
+func printResult(link string, sess *Session) bool {
 
 	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	s.Prefix = "PENDING "
@@ -142,14 +142,18 @@ func printResult(link string, sess *Session) {
 	defer s.Stop()
 
 	for true {
-		status, text := printResultRequest(link, sess.Cookie)
+		status, text, verdict := printResultRequest(link, sess.Cookie)
 		s.Prefix = status + " "
 
 		if status == "READY" || status == "" {
-			fmt.Println("\n" + text)
+			fmt.Print("\n" + text)
+			if verdict == "ACCEPTED" {
+				return true
+			}
 			break
 		}
 	}
+	return false
 }
 
 func submit(filename string, sess *Session) {
@@ -170,7 +174,18 @@ func submit(filename string, sess *Session) {
 	}
 
 	link := submitRequest(opts, filename, sess.Cookie)
-	printResult(link, sess)
+
+	if verdict := printResult(link, sess); verdict && validGithubConfig(&sess.Github) {
+		s := spinner.New(spinner.CharSets[36], 100*time.Millisecond)
+		s.Prefix = "Comitting to Github"
+		s.Start()
+		defer s.Stop()
+		if ok := updateFile(filename, &sess.Github); ok {
+			fmt.Println("✔")
+		} else {
+			fmt.Println("✘")
+		}
+	}
 }
 
 func getTask(task string, sess *Session) (string, bool) {
@@ -217,13 +232,27 @@ func solve(task string, sess *Session) {
 
 	if sess.Editor == "" {
 		scanner := bufio.NewScanner(os.Stdin)
-		fmt.Print("Editor: ")
-		scanner.Scan()
-		sess.Editor = scanner.Text()
 
+		updateIfNew(scanner, &sess.Editor, "Editor")
+
+		if sess.Editor == "" {
+			fmt.Println("Editor still not configured")
+			return
+		}
 		updateConfig(sess)
 	}
 	exec.Command(sess.Editor, filename).Output()
+}
+
+func configureGithub(sess *Session) {
+	scanner := bufio.NewScanner(os.Stdin)
+
+	updateIfNew(scanner, &sess.Github.Token, "Token")
+	updateIfNew(scanner, &sess.Github.SourceRepo, "Repository")
+	updateIfNew(scanner, &sess.Github.AuthorName, "Github Username")
+	updateIfNew(scanner, &sess.Github.AuthorEmail, "Github Email")
+
+	updateConfig(sess)
 }
 
 func stat(task string) {
@@ -239,6 +268,7 @@ func main() {
 	}
 
 	sess := &Session{}
+
 	isLogged := initSess(sess)
 
 	switch flag.Arg(0) {
@@ -270,6 +300,8 @@ func main() {
 			return
 		}
 		submit(flag.Arg(1), sess)
+	case "github":
+		configureGithub(sess)
 
 	case "stat":
 		fmt.Println("sw stat 1068")

@@ -2,6 +2,7 @@
 solve cses.fi problemset via command line. Inspired from awesome [leetcode-cli](https://github.com/skygragon/leetcode-cli).
 
 
+## How to use cses-cli
 * Download the required binary from [https://github.com/ketankr9/cses-cli/releases](https://github.com/ketankr9/cses-cli/releases)
 * Install [lynx](https://www.google.com/search?q=install+lynx+&oq=install+lynx). For ubuntu use ```sudo apt install lynx```
 * Rename the binary to cses-cli and move it to PATH
@@ -13,8 +14,18 @@ cses-cli show 1742
 cses-cli solve 1742
 cses-cli submit 1742.task.cpp
 ```
+## Auto Commit to your GitHub Repository (if needed)  
+* Obtain access token for your repo. See [how to get token](https://github.com/skygragon/leetcode-cli-plugins/blob/master/docs/github.md#generate-token)
+* Configure cses-cli for github as follows
+```
+$$$ cses-cli github
+Token: 1f10d6065e78a2654a14xxxxxxxxxxxxxxxxxxxx 
+Repository: cses-solutions 
+Github Username: ketankr9 
+Github Email: ketan.krishnan.xxxxx@iitbhu.ac.in
+```
 
-**Example**
+## Screenshot
 ```
 $$$ cses-cli login
 Username: test123xyz
@@ -97,11 +108,12 @@ Submission time:2020-03-07 13:56:29
 Language:C++17
 Status:READY
 Result:ACCEPTED
+Comitting to Github[===>                ] ✔
 ```
 
 >I will add support for these features only if people show some love to this repo since current commit suffices my need.
 
 *	Supports only C++ currently, will add support for other languages on request.
 *	A modifiable template code file.
-*	Auto commit to Github repository
+*	Auto commit to Github repository **UPDATE: Done**
 *	Clean LaTex based $equation$ from problem statement. Eg $1 ≤ n ≤ 10^6$

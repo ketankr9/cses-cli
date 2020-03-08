@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -21,6 +22,10 @@ func check(e error) {
 	}
 }
 
+func validGithubConfig(opts *githubConfig) bool {
+	return opts.Token != "" && opts.SourceRepo != "" && opts.AuthorName != "" && opts.AuthorEmail != ""
+}
+
 func UserHomeDir() string {
 	if runtime.GOOS == "windows" {
 		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
@@ -33,9 +38,22 @@ func UserHomeDir() string {
 }
 
 func updateConfig(sess *Session) {
-	out, err := json.Marshal(sess)
+	out, err := json.MarshalIndent(sess, "", "    ")
 	check(err)
 	cacheSet("login.json", string(out), sess.Root)
+}
+
+func updateIfNew(scanner *bufio.Scanner, src *string, text string) {
+	if *src == "" {
+		fmt.Print(text + ": ")
+	} else {
+		fmt.Print(text + "(" + *src + "): ")
+	}
+	scanner.Scan()
+	val := scanner.Text()
+	if val != "" {
+		*src = val
+	}
 }
 
 func cacheSet(filename string, data string, root string) {

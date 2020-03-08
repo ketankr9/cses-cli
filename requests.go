@@ -83,7 +83,7 @@ func listRequest(cookie string) io.ReadCloser {
 	return resp.Body
 }
 
-func printResultRequest(link string, cookie string) (string, string) {
+func printResultRequest(link string, cookie string) (string, string, string) {
 	req, err := http.NewRequest("GET", "https://cses.fi"+link, nil)
 	check(err)
 
@@ -99,7 +99,9 @@ func printResultRequest(link string, cookie string) (string, string) {
 	status := doc.Find("#status").Text()
 	text := doc.Find(".summary-table > tbody:nth-child(2)").Contents().Text()
 
-	return status, text
+	verdict := doc.Find(".summary-table > tbody:nth-child(2) > tr:nth-child(6) > td:nth-child(2) > span:nth-child(1)").Contents().Text()
+
+	return status, text, verdict
 }
 
 func downloadTask(task string) string {
