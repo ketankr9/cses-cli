@@ -1,6 +1,13 @@
 api.sh
-*.cpp
+*.task.*
 notes.txt
+template.*
+
+project/*.task.*
+project/template.*
+project/cses-cli
+project/pkg
+project/src
 
 # Binaries for programs and plugins
 *.exe

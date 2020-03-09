@@ -2,13 +2,9 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"mime/multipart"
-	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -40,7 +36,7 @@ func UserHomeDir() string {
 func updateConfig(sess *Session) {
 	out, err := json.MarshalIndent(sess, "", "    ")
 	check(err)
-	cacheSet("login.json", string(out), sess.Root)
+	cacheSet("config.json", string(out), sess.Root)
 }
 
 func updateIfNew(scanner *bufio.Scanner, src *string, text string) {
@@ -79,6 +75,14 @@ func cacheGet(filename string, root string) ([]byte, bool) {
 	return content, true
 }
 
+func getTemplate(ext string) string {
+	content, err := ioutil.ReadFile("template"+ext)
+	if err != nil {
+		return ""
+	}
+	return string(content)
+}
+
 func getTaskFromCache(task string, root string) string {
 	path := filepath.Join(root, task+".task.html")
 
@@ -115,41 +119,23 @@ func writeCodeFile(filename string, text string, template string) bool {
 	return true
 }
 
-func newfileUploadRequest(uri string, params map[string]string, paramName, path string, cookie string) (*http.Request, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile(paramName, filepath.Base(path))
-	if err != nil {
-		return nil, err
-	}
-	_, err = io.Copy(part, file)
-
-	for key, val := range params {
-		_ = writer.WriteField(key, val)
-	}
-	err = writer.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	return newfileUploadRequestPost(uri, body, cookie, writer.FormDataContentType())
+var extLangMap = map[string]string{
+	".java": "Java",
+	".js": "Node.js",
+	".py": "Python3",
+	".cpp": "C++",
 }
-
-func fileMeta(filename string) (string, string, string, bool) {
-	parts := strings.Split(filepath.Base(filename), ".")
-	lang := parts[2]
-	option := ""
-	if lang == "cpp" {
-		lang = "C++"
-		option = "C++17"
-	}
-	return parts[0], lang, option, true
+var extOptionMap = map[string]string{
+	".java": "",
+	".js": "",
+	".py": "CPython3",
+	".cpp": "C++17",
+}
+var langExtMap = map[string]string {
+	"java": ".java",
+	"javascript": ".js",
+	"python": ".py",
+	"cpp": ".cpp",
 }
 
 var unicodeMap = map[string]string{

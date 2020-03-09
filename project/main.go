@@ -38,24 +38,24 @@ type Session struct {
 	Cookie string       `json:"cookie"`
 	Root   string       `json:"root"`
 	Editor string       `json:"editor"`
+	Lang string `json:"lang"`
 	Github githubConfig `json:"github"`
 }
 
-var cpptemplate = `
-#include<bits/stdc++.h>
-using namespace std;
+// var cpptemplate = `
+// #include<bits/stdc++.h>
+// using namespace std;
 
-int main(){
+// int main(){
 
-	return 0;
-}
-`
+// 	return 0;
+// }
+// `
 
 func initSess(sess *Session) bool {
-	sess.Root = filepath.Join(UserHomeDir(), ".cses")
 	os.MkdirAll(sess.Root, os.ModePerm)
 
-	out, ok := cacheGet("login.json", sess.Root)
+	out, ok := cacheGet("config.json", sess.Root)
 	if !ok {
 		return false
 	}
@@ -145,7 +145,7 @@ func printResult(link string, sess *Session) bool {
 		status, text, verdict := printResultRequest(link, sess.Cookie)
 		s.Prefix = status + " "
 
-		if status == "READY" || status == "" {
+		if status == "READY" || status == "COMPILE ERROR" || status == "" {
 			fmt.Print("\n" + text)
 			if verdict == "ACCEPTED" {
 				return true
@@ -156,31 +156,28 @@ func printResult(link string, sess *Session) bool {
 	return false
 }
 
-func submit(filename string, sess *Session) {
+func submit(sourceFile string, sess *Session) {
 
-	task, lang, option, exist := fileMeta(filename)
-	if !exist {
-		fmt.Println("File doesn't exist")
-		return
-	}
+	ext := filepath.Ext(sourceFile)
+	task := strings.Split(filepath.Base(sourceFile), ".")[0]
 
 	opts := map[string]string{
 		"csrf_token": sess.Csrf,
 		"task":       task,
-		"lang":       lang,
+		"lang":       extLangMap[ext],
 		"type":       "course",
 		"target":     "problemset",
-		"option":     option,
+		"option":     extOptionMap[ext],
 	}
 
-	link := submitRequest(opts, filename, sess.Cookie)
+	link := submitRequest(opts, sourceFile, sess.Cookie)
 
 	if verdict := printResult(link, sess); verdict && validGithubConfig(&sess.Github) {
 		s := spinner.New(spinner.CharSets[36], 100*time.Millisecond)
 		s.Prefix = "Comitting to Github"
 		s.Start()
 		defer s.Stop()
-		if ok := updateFile(filename, &sess.Github); ok {
+		if ok := updateFile(sourceFile, &sess.Github); ok {
 			fmt.Println("✔")
 		} else {
 			fmt.Println("✘")
@@ -226,9 +223,10 @@ func solve(task string, sess *Session) {
 		fmt.Println("Task Doesn't Exist")
 	}
 
-	filename := task + ".task.cpp"
+	filename := task + ".task" + langExtMap[sess.Lang]
+	template := getTemplate(langExtMap[sess.Lang])
 
-	writeCodeFile(filename, text, cpptemplate)
+	writeCodeFile(filename, text, template)
 
 	if sess.Editor == "" {
 		scanner := bufio.NewScanner(os.Stdin)
@@ -255,19 +253,36 @@ func configureGithub(sess *Session) {
 	updateConfig(sess)
 }
 
-func stat(task string) {
-	fmt.Println("#Todo")
+func showHelp(){
+	fmt.Println("Usage:")
+
+	fmt.Println("\tcses-cli login")
+	fmt.Println("\tcses-cli list")
+	fmt.Println("\tcses-cli show 1068")
+	fmt.Println("\tcses-cli solve 1068")
+	fmt.Println("\tcses-cli submit 1068.task.cpp")
+	
+	fmt.Println("Optional:")
+	fmt.Println("\tcses-cli github")
 }
+
+// func stat(task string) {
+// 	fmt.Println("#Todo")
+// }
 
 func main() {
 
 	flag.Parse()
 
 	if flag.NArg() == 0 {
-		os.Exit(1)
+		showHelp()
+		return
 	}
 
-	sess := &Session{}
+	sess := &Session{
+		Lang: "cpp",
+		Root: filepath.Join(UserHomeDir(), ".cses"),
+	}
 
 	isLogged := initSess(sess)
 
@@ -303,11 +318,11 @@ func main() {
 	case "github":
 		configureGithub(sess)
 
-	case "stat":
-		fmt.Println("sw stat 1068")
-		stat("stat 1068")
-
+	// case "stat":
+	// 	fmt.Println("sw stat 1068")
+	// 	stat("stat 1068")
+	case "help":
 	default:
-		fmt.Println("sw default")
+		showHelp()
 	}
 }

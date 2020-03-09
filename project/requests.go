@@ -5,20 +5,23 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"mime/multipart"
+	"os"
+	"fmt"
+	"path/filepath"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-// func printResp(resp *http.Response) {
-// 	body := &bytes.Buffer{}
-// 	_, err := body.ReadFrom(resp.Body)
-// 	if err != nil {
-// 		log.Fatal(err)
-// 	}
-// 	fmt.Println(body)
-// 	fmt.Println(resp.Header)
-// 	fmt.Println(resp.StatusCode)
-// }
+func printResp(resp *http.Response) {
+	body := &bytes.Buffer{}
+	_, err := body.ReadFrom(resp.Body)
+	check(err)
+
+	fmt.Println(body)
+	fmt.Println(resp.Header)
+	fmt.Println(resp.StatusCode)
+}
 
 func newfileUploadRequestPost(uri string, body *bytes.Buffer, cookie string, contentType string) (*http.Request, error) {
 
@@ -29,13 +32,44 @@ func newfileUploadRequestPost(uri string, body *bytes.Buffer, cookie string, con
 	return req, err
 }
 
+func newfileUploadRequest(uri string, params map[string]string, path string, cookie string) (*http.Request, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	filename := filepath.Base(path)
+	if filepath.Ext(path) == ".java" {
+		filename = "Solution.java"
+	}
+	part, err := writer.CreateFormFile("file", filename)
+	if err != nil {
+		return nil, err
+	}
+	_, err = io.Copy(part, file)
+
+	for key, val := range params {
+		_ = writer.WriteField(key, val)
+	}
+	err = writer.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	return newfileUploadRequestPost(uri, body, cookie, writer.FormDataContentType())
+}
+
 func submitRequest(opts map[string]string, filename string, cookie string) string {
-	request, err := newfileUploadRequest("https://cses.fi/course/send.php", opts, "file", filename, cookie)
+	request, err := newfileUploadRequest("https://cses.fi/course/send.php", opts, filename, cookie)
 	check(err)
 
 	client := &http.Client{}
 	resp, err := client.Do(request)
 	check(err)
+
 	defer resp.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
