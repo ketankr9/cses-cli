@@ -25,11 +25,31 @@ Github Username: ketankr9
 Github Email: ketan.krishnan.xxxxx@iitbhu.ac.in
 ```
 
+## Configuration  
+**Languages Supported**: *cpp*(C++17) \[default\], *java*, *python*(CPython3), *javascript*(Node.js)  
+Also you can manually edit the config at ```~/.cses/config.json```  
+```
+$$$ cat ~/.cses/config.json 
+{
+    "csrf": "3e236b578af1e020070281xxxxxxxxxx",
+    "username": "test123xyz",
+    "cookie": "PHPSESSID=e17c5cae7fcxxxxxxxxxa7d14ee120fc4fb859c; path=/",
+    "root": "/home/username/.cses",
+    "editor": "atom",
+    "lang": "java",
+    "github": {
+        "token": "1f10d6065e78a2654a14xxxxxxxxxxxxxxxxxxxx",
+        "repository": "cses-solutions",
+        "username": "ketankr9",
+        "email": "ketan.krishnan.xxxxx@iitbhu.ac.in"
+    }
+}
+```
 ## Screenshot
 ```
 $$$ cses-cli login
 Username: test123xyz
-Password: qwertyui
+Password: [<DELETED>]
 Logged in successfully
 
 $$$ cses-cli list
@@ -101,19 +121,18 @@ $$$ cses-cli solve 1068
    3 10 5 16 8 4 2 1
 
 $$$ cses-cli submit 1068.task.cpp 
-TESTING ⠇ 
 Task:Weird Algorithm
 Sender:test123xyz
 Submission time:2020-03-07 13:56:29
 Language:C++17
 Status:READY
 Result:ACCEPTED
-Comitting to Github[===>                ] ✔
+Github: cses-solutions ✔
 ```
 
 >I will add support for these features only if people show some love to this repo since current commit suffices my need.
 
-*	Supports only C++ currently, will add support for other languages on request.
-*	A modifiable template code file.
+*	Supports only C++ currently, will add support for other languages on request. **UPDATE: Done**
+*	A modifiable template code file. **UPDATE: Done**
 *	Auto commit to Github repository **UPDATE: Done**
 *	Clean LaTex based $equation$ from problem statement. Eg $1 ≤ n ≤ 10^6$

@@ -139,14 +139,14 @@ func printResult(link string, sess *Session) bool {
 	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	s.Prefix = "PENDING "
 	s.Start()
-	defer s.Stop()
 
 	for true {
 		status, text, verdict := printResultRequest(link, sess.Cookie)
 		s.Prefix = status + " "
 
 		if status == "READY" || status == "COMPILE ERROR" || status == "" {
-			fmt.Print("\n" + text)
+			s.Stop()
+			fmt.Print(text)
 			if verdict == "ACCEPTED" {
 				return true
 			}
@@ -159,11 +159,10 @@ func printResult(link string, sess *Session) bool {
 func submit(sourceFile string, sess *Session) {
 
 	ext := filepath.Ext(sourceFile)
-	task := strings.Split(filepath.Base(sourceFile), ".")[0]
 
 	opts := map[string]string{
 		"csrf_token": sess.Csrf,
-		"task":       task,
+		"task":       strings.Split(filepath.Base(sourceFile), ".")[0],
 		"lang":       extLangMap[ext],
 		"type":       "course",
 		"target":     "problemset",
@@ -174,13 +173,14 @@ func submit(sourceFile string, sess *Session) {
 
 	if verdict := printResult(link, sess); verdict && validGithubConfig(&sess.Github) {
 		s := spinner.New(spinner.CharSets[36], 100*time.Millisecond)
-		s.Prefix = "Comitting to Github"
+		s.Prefix = "Committing to Github"
 		s.Start()
-		defer s.Stop()
 		if ok := updateFile(sourceFile, &sess.Github); ok {
-			fmt.Println("✔")
+			s.Stop()
+			fmt.Println("Github: "+sess.Github.SourceRepo+" ✔")
 		} else {
-			fmt.Println("✘")
+			s.Stop()
+			fmt.Println("Github: ✘")
 		}
 	}
 }
