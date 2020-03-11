@@ -74,6 +74,14 @@ func cacheGet(filename string, ret interface{}, root string) bool {
 	return true
 }
 
+func writeTask(filename string, text string, root string){
+	f, err := os.Create(filepath.Join(root, filename))
+	defer f.Close()
+	check(err)
+	_, err = f.WriteString(text)
+	check(err)
+}
+
 func updateListByTask(task string, status string, root string) {
 	var problems = []*Problem{}
 	cacheGet("problemList.json", &problems, root)
@@ -95,18 +103,19 @@ func getTemplate(ext string) string {
 	return string(content)
 }
 
-func getTaskFromCache(task string, root string) string {
+func getTaskFromCache(task string, root string) (string, string) {
 	path := filepath.Join(root, task+".task.html")
 
 	output, err := exec.Command("bash", "-c", "lynx -dump "+path).Output()
 	check(err)
 	data := string(output)
-
+	
 	for k, v := range unicodeMap {
 		data = strings.Replace(data, k, v, -1)
 	}
 
-	return data
+	x := strings.Fields(strings.Split(strings.Split(data, "\n")[0], "-")[1])
+	return strings.Join(x, "-"), data
 }
 
 func writeCodeFile(filename string, text string, template string) bool {

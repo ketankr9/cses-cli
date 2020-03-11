@@ -3,7 +3,7 @@ api.sh
 notes.txt
 template.*
 
-project/*.task.*
+project/1*
 project/template.*
 project/cses-cli
 project/pkg

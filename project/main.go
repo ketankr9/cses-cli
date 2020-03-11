@@ -170,7 +170,7 @@ func submit(sourceFile string, sess *Session) {
 	}
 }
 
-func getTask(task string, sess *Session) (string, bool) {
+func getTask(task string, sess *Session) (string, string, bool) {
 	filename := task + ".task.html"
 	path := filepath.Join(sess.Root, filename)
 
@@ -185,15 +185,16 @@ func getTask(task string, sess *Session) (string, bool) {
 		s.Stop()
 
 		if text == "" {
-			return "", false
+			return "", "", false
 		}
-		cacheSet(filename, text, sess.Root)
+		writeTask(filename, text, sess.Root)
 	}
-	return getTaskFromCache(task, sess.Root), true
+	title, text := getTaskFromCache(task, sess.Root)
+	return title, text, true
 }
 
 func show(task string, sess *Session) {
-	text, exist := getTask(task, sess)
+	_, text, exist := getTask(task, sess)
 	if exist {
 		fmt.Println(text)
 	} else {
@@ -203,12 +204,12 @@ func show(task string, sess *Session) {
 
 func solve(task string, sess *Session) {
 
-	text, exist := getTask(task, sess)
+	title, text, exist := getTask(task, sess)
 	if !exist {
 		fmt.Println("Task Doesn't Exist")
 	}
 
-	filename := task + ".task" + langExtMap[sess.Lang]
+	filename := task + "."+title+ langExtMap[sess.Lang]
 	template := getTemplate(langExtMap[sess.Lang])
 
 	writeCodeFile(filename, text, template)
