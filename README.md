@@ -12,11 +12,12 @@ cses-cli login
 cses-cli list
 cses-cli show 1742
 cses-cli solve 1742
-cses-cli submit 1742.task.cpp
+cses-cli submit 1742.Robot-Path.cpp
 ```
 ## Auto Commit to your GitHub Repository (if needed)  
-* Obtain access token for your repo. See [how to get token](https://github.com/skygragon/leetcode-cli-plugins/blob/master/docs/github.md#generate-token)
-* Configure cses-cli for github as follows
+* Obtain access token for your repo. See [how to get token](https://github.com/skygragon/leetcode-cli-plugins/blob/master/docs/github.md#generate-token)    
+* **Note:** Please make sure that your repo has *at least one* commit.  
+* Configure cses-cli for github as follows.  
 ```
 $$$ cses-cli github
 Token: 1f10d6065e78a2654a14xxxxxxxxxxxxxxxxxxxx 
@@ -136,7 +137,7 @@ $$$ cses-cli solve 1068
    Output:
    3 10 5 16 8 4 2 1
 
-$$$ cses-cli submit 1068.task.cpp 
+$$$ cses-cli submit 1068.Weird-Algorithm.cpp 
 Task:Weird Algorithm
 Sender:test123xyz
 Submission time:2020-03-07 13:56:29
