@@ -2,16 +2,24 @@ package main
 
 import (
 	"bytes"
-	"io"
-	"net/http"
-	"strings"
-	"mime/multipart"
-	"os"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/PuerkitoBio/goquery"
 )
+
+type Problem struct {
+	Task     string  `json:"task"`
+	Title    string  `json:"title"`
+	Solved   string  `json:"solved"`
+	HitRatio float64 `json:"hitratio"`
+}
 
 func printResp(resp *http.Response) {
 	body := &bytes.Buffer{}
@@ -102,7 +110,7 @@ func loginRequest(params string, cookie string) string {
 	return doc.Find(".account").Contents().Text()
 }
 
-func listRequest(cookie string) io.ReadCloser {
+func listRequest(cookie string) []*Problem {
 	req, err := http.NewRequest("GET", "https://cses.fi/problemset/list", nil)
 	check(err)
 
@@ -111,10 +119,40 @@ func listRequest(cookie string) io.ReadCloser {
 
 	resp, err := http.DefaultClient.Do(req)
 	check(err)
+	defer resp.Body.Close()
 
-	// defer resp.Body.Close()
+	var arr = []*Problem{}
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	check(err)
 
-	return resp.Body
+	doc.Find(".task").Each(func(i int, s *goquery.Selection) {
+
+		solved := "✘"
+
+		a := s.Find("a")
+		link, _ := a.Attr("href")
+		taskNumber := link[17:]
+		title := a.Text()
+
+		hitRatio := strings.Split(s.Find("span").Text(), "/")
+		n, err := strconv.ParseFloat(strings.TrimSpace(hitRatio[0]), 64)
+		check(err)
+		d, err := strconv.ParseFloat(strings.TrimSpace(hitRatio[1]), 64)
+		check(err)
+
+		percent := n * 100 / d
+
+		s.Find(".task-score").Each(func(o int, k *goquery.Selection) {
+			st, _ := k.Attr("class")
+			if strings.Contains(st, "full") {
+				solved = "✔"
+			} else if "task-score icon " == st {
+				solved = "-"
+			}
+		})
+		arr = append(arr, &Problem{taskNumber, title, solved, percent})
+	})
+	return arr
 }
 
 func printResultRequest(link string, cookie string) (string, string, string) {

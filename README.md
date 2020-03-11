@@ -26,7 +26,7 @@ Github Email: ketan.krishnan.xxxxx@iitbhu.ac.in
 ```
 
 ## Configuration  
-**Custom Template**: Create a file named *template.cpp, template.py, template.java, template.js* for respective languages in the **working** directory to use this feature.
+**Custom Template**: Create a file named *template.cpp, template.py, template.java, template.js* for respective languages in the **working** directory to use this feature.  
 **Languages Supported**: *cpp*(C++17) \[default\], *java*, *python*(CPython3), *javascript*(Node.js)  
 Also you can manually edit the config at ```~/.cses/config.json```  
 ```

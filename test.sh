@@ -2,8 +2,9 @@
 
 TASK="1068"
 
+cd project
 echo "[*] rm -rf ~/.cses/"
-rm -rf ~/.cses/
+#rm -rf ~/.cses/
 
 echo "[*] go run ./*.go login"
 go run ./*.go login
@@ -22,3 +23,5 @@ go run ./*.go solve "${TASK}"
 
 echo "[*] go run ./*.go submit ${TASK}.task.cpp"
 go run ./*.go submit "${TASK}".task.cpp
+
+cd ..

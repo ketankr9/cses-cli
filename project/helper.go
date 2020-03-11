@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -33,12 +35,6 @@ func UserHomeDir() string {
 	return os.Getenv("HOME")
 }
 
-func updateConfig(sess *Session) {
-	out, err := json.MarshalIndent(sess, "", "    ")
-	check(err)
-	cacheSet("config.json", string(out), sess.Root)
-}
-
 func updateIfNew(scanner *bufio.Scanner, src *string, text string) {
 	if *src == "" {
 		fmt.Print(text + ": ")
@@ -52,31 +48,47 @@ func updateIfNew(scanner *bufio.Scanner, src *string, text string) {
 	}
 }
 
-func cacheSet(filename string, data string, root string) {
+func cacheSet(filename string, data interface{}, root string) {
+
 	f, err := os.Create(filepath.Join(root, filename))
+	defer f.Close()
 	check(err)
 
-	w := bufio.NewWriter(f)
-	w.WriteString(data)
+	b, err := json.MarshalIndent(data, "", "  ")
+	check(err)
 
-	w.Flush()
-	defer f.Close()
+	_, err = io.Copy(f, bytes.NewReader(b))
 }
 
-func cacheGet(filename string, root string) ([]byte, bool) {
+func cacheGet(filename string, ret interface{}, root string) bool {
 	path := filepath.Join(root, filename)
 
 	_, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		return nil, false
+		return false
 	}
 	content, err := ioutil.ReadFile(path)
 	check(err)
-	return content, true
+
+	json.Unmarshal(content, ret)
+	return true
+}
+
+func updateListByTask(task string, status string, root string) {
+	var problems = []*Problem{}
+	cacheGet("problemList.json", &problems, root)
+
+	for _, v := range problems {
+		if task == v.Task {
+			v.Solved = status
+			break
+		}
+	}
+	cacheSet("problemList.json", problems, root)
 }
 
 func getTemplate(ext string) string {
-	content, err := ioutil.ReadFile("template"+ext)
+	content, err := ioutil.ReadFile("template" + ext)
 	if err != nil {
 		return ""
 	}
@@ -121,21 +133,21 @@ func writeCodeFile(filename string, text string, template string) bool {
 
 var extLangMap = map[string]string{
 	".java": "Java",
-	".js": "Node.js",
-	".py": "Python3",
-	".cpp": "C++",
+	".js":   "Node.js",
+	".py":   "Python3",
+	".cpp":  "C++",
 }
 var extOptionMap = map[string]string{
 	".java": "",
-	".js": "",
-	".py": "CPython3",
-	".cpp": "C++17",
+	".js":   "",
+	".py":   "CPython3",
+	".cpp":  "C++17",
 }
-var langExtMap = map[string]string {
-	"java": ".java",
+var langExtMap = map[string]string{
+	"java":       ".java",
 	"javascript": ".js",
-	"python": ".py",
-	"cpp": ".cpp",
+	"python":     ".py",
+	"cpp":        ".cpp",
 }
 
 var unicodeMap = map[string]string{

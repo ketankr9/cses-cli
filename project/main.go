@@ -2,17 +2,15 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"strings"
+	"sync"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/briandowns/spinner"
 )
 
@@ -38,29 +36,19 @@ type Session struct {
 	Cookie string       `json:"cookie"`
 	Root   string       `json:"root"`
 	Editor string       `json:"editor"`
-	Lang string `json:"lang"`
+	Lang   string       `json:"lang"`
 	Github githubConfig `json:"github"`
 }
-
-// var cpptemplate = `
-// #include<bits/stdc++.h>
-// using namespace std;
-
-// int main(){
-
-// 	return 0;
-// }
-// `
 
 func initSess(sess *Session) bool {
 	os.MkdirAll(sess.Root, os.ModePerm)
 
-	out, ok := cacheGet("config.json", sess.Root)
+	ok := cacheGet("config.json", sess, sess.Root)
 	if !ok {
 		return false
 	}
 
-	json.Unmarshal(out, sess)
+	// json.Unmarshal(out, sess)
 	if sess.Csrf == "" || sess.User == "" || sess.Cookie == "" {
 		return false
 	}
@@ -78,64 +66,56 @@ func login(sess *Session, pass string) bool {
 }
 
 func promtLogin(sess *Session) bool {
-	scanner := bufio.NewScanner(os.Stdin)
 
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		sess.Cookie, sess.Csrf = newCookieCsrf()
+		wg.Done()
+	}()
+
+	scanner := bufio.NewScanner(os.Stdin)
 	updateIfNew(scanner, &sess.User, "Username")
 
 	fmt.Print("Password: ")
 	scanner.Scan()
 	PASSWORD := scanner.Text()
 
-	sess.Cookie, sess.Csrf = newCookieCsrf()
+	s := spinner.New(spinner.CharSets[36], 100*time.Millisecond)
+	s.Prefix = "Logging "
+
+	s.Start()
+	wg.Wait()
 	ok := login(sess, PASSWORD)
+	s.Stop()
 
 	if !ok {
 		return false
 	}
 
-	updateConfig(sess)
-
+	cacheSet("config.json", sess, sess.Root)
 	return true
 }
 
+func updateProblemListCache(sess *Session) {
+	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
+	s.Prefix = "Updating Problem List "
+	s.Start()
+	problems := listRequest(sess.Cookie)
+	cacheSet("problemList.json", problems, sess.Root)
+	s.Stop()
+}
+
 func list(sess *Session) {
+	var problems = []*Problem{}
+	cacheGet("problemList.json", &problems, sess.Root)
 
-	doc, err := goquery.NewDocumentFromReader(listRequest(sess.Cookie))
-	check(err)
-
-	doc.Find(".task").Each(func(i int, s *goquery.Selection) {
-
-		solved := "✘"
-
-		a := s.Find("a")
-		link, _ := a.Attr("href")
-		taskNumber := link[17:]
-		title := a.Text()
-
-		hitRatio := strings.Split(s.Find("span").Text(), "/")
-		n, err := strconv.ParseFloat(strings.TrimSpace(hitRatio[0]), 64)
-		check(err)
-		d, err := strconv.ParseFloat(strings.TrimSpace(hitRatio[1]), 64)
-		check(err)
-
-		percent := n * 100 / d
-
-		s.Find(".task-score").Each(func(o int, k *goquery.Selection) {
-			st, _ := k.Attr("class")
-			if strings.Contains(st, "full") {
-				solved = "✔"
-			} else if "task-score icon " == st {
-				solved = "-"
-			}
-		})
-
-		fmt.Printf("\t%s [%s] %-25s (%.1f %%)\n", solved, taskNumber, title, percent)
-	})
-
+	for _, v := range problems {
+		fmt.Printf("\t%s [%s] %-25s (%.1f %%)\n", v.Solved, v.Task, v.Title, v.HitRatio)
+	}
 }
 
 func printResult(link string, sess *Session) bool {
-
 	s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 	s.Prefix = "PENDING "
 	s.Start()
@@ -171,17 +151,22 @@ func submit(sourceFile string, sess *Session) {
 
 	link := submitRequest(opts, sourceFile, sess.Cookie)
 
-	if verdict := printResult(link, sess); verdict && validGithubConfig(&sess.Github) {
-		s := spinner.New(spinner.CharSets[36], 100*time.Millisecond)
-		s.Prefix = "Committing to Github"
-		s.Start()
-		if ok := updateFile(sourceFile, &sess.Github); ok {
-			s.Stop()
-			fmt.Println("Github: "+sess.Github.SourceRepo+" ✔")
-		} else {
-			s.Stop()
-			fmt.Println("Github: ✘")
+	if verdict := printResult(link, sess); verdict {
+		go updateListByTask(opts["task"], "✔", sess.Root)
+		if validGithubConfig(&sess.Github) {
+			s := spinner.New(spinner.CharSets[36], 100*time.Millisecond)
+			s.Prefix = "Committing to Github"
+			s.Start()
+			if ok := updateFile(sourceFile, &sess.Github); ok {
+				s.Stop()
+				fmt.Println("Github: " + sess.Github.SourceRepo + " ✔")
+			} else {
+				s.Stop()
+				fmt.Println("Github: ✘")
+			}
 		}
+	} else {
+		updateListByTask(opts["task"], "✘", sess.Root)
 	}
 }
 
@@ -194,16 +179,16 @@ func getTask(task string, sess *Session) (string, bool) {
 	if os.IsNotExist(err) {
 		s := spinner.New(spinner.CharSets[14], 100*time.Millisecond)
 		s.Prefix = "Downloading "
-		s.Start()
-		defer s.Stop()
 
+		s.Start()
 		text := downloadTask(task)
+		s.Stop()
+
 		if text == "" {
 			return "", false
 		}
 		cacheSet(filename, text, sess.Root)
 	}
-
 	return getTaskFromCache(task, sess.Root), true
 }
 
@@ -237,7 +222,7 @@ func solve(task string, sess *Session) {
 			fmt.Println("Editor still not configured")
 			return
 		}
-		updateConfig(sess)
+		cacheSet("config.json", sess, sess.Root)
 	}
 	exec.Command(sess.Editor, filename).Output()
 }
@@ -250,10 +235,10 @@ func configureGithub(sess *Session) {
 	updateIfNew(scanner, &sess.Github.AuthorName, "Github Username")
 	updateIfNew(scanner, &sess.Github.AuthorEmail, "Github Email")
 
-	updateConfig(sess)
+	cacheSet("config.json", sess, sess.Root)
 }
 
-func showHelp(){
+func showHelp() {
 	fmt.Println("Usage:")
 
 	fmt.Println("\tcses-cli login")
@@ -261,7 +246,7 @@ func showHelp(){
 	fmt.Println("\tcses-cli show 1068")
 	fmt.Println("\tcses-cli solve 1068")
 	fmt.Println("\tcses-cli submit 1068.task.cpp")
-	
+
 	fmt.Println("Optional:")
 	fmt.Println("\tcses-cli github")
 }
@@ -292,6 +277,7 @@ func main() {
 			fmt.Println("Login failed")
 		} else {
 			fmt.Println("Logged in successfully")
+			updateProblemListCache(sess)
 		}
 	case "list":
 		list(sess)
