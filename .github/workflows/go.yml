@@ -5,8 +5,6 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-  schedule:
-  - cron: "5 17 * * *"
 
 jobs:
 
@@ -33,4 +31,4 @@ jobs:
         fi
 
     - name: Build
-      run: go build -v ./project/
+      run: cd project && go build -v .
