@@ -1,4 +1,4 @@
-# cses-cli
+# cses-cli ![Go](https://github.com/ketankr9/cses-cli/workflows/Go/badge.svg)
 solve cses.fi problemset via command line. Inspired from awesome [leetcode-cli](https://github.com/skygragon/leetcode-cli).
 
 
