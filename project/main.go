@@ -109,7 +109,10 @@ func updateProblemListCache(sess *Session) {
 func list(sess *Session) {
 	var problems = []*Problem{}
 	cacheGet("problemList.json", &problems, sess.Root)
-
+	if len(problems) == 0 {
+		updateProblemListCache(sess)
+		cacheGet("problemList.json", &problems, sess.Root)
+	}
 	for _, v := range problems {
 		fmt.Printf("\t%s [%s] %-25s (%.1f %%)\n", v.Solved, v.Task, v.Title, v.HitRatio)
 	}
@@ -209,7 +212,7 @@ func solve(task string, sess *Session) {
 		fmt.Println("Task Doesn't Exist")
 	}
 
-	filename := task + "."+title+ langExtMap[sess.Lang]
+	filename := task + "." + title + langExtMap[sess.Lang]
 	template := getTemplate(langExtMap[sess.Lang])
 
 	writeCodeFile(filename, text, template)
