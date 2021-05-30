@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/project/src/github.com/PuerkitoBio/goquery" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/project/src/github.com/andybalholm/cascadia" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/project/src/github.com/briandowns/spinner" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/project/src/github.com/google/go-github" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/project/src/github.com/google/go-querystring" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/project/src/golang.org/x/crypto" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/project/src/golang.org/x/net" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/project/src/golang.org/x/oauth2" vcs="Git" />
+  </component>
+</project>

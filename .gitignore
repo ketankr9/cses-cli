@@ -29,3 +29,5 @@ cses-cli
 pkg/
 release/
 src/
+Setup/
+bin/
