@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"bytes"
@@ -14,13 +14,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-type Problem struct {
-	Task     string  `json:"task"`
-	Title    string  `json:"title"`
-	Solved   string  `json:"solved"`
-	HitRatio float64 `json:"hitratio"`
-}
-
 func printResp(resp *http.Response) {
 	body := &bytes.Buffer{}
 	_, err := body.ReadFrom(resp.Body)
@@ -31,7 +24,7 @@ func printResp(resp *http.Response) {
 	fmt.Println(resp.StatusCode)
 }
 
-func newfileUploadRequestPost(uri string, body *bytes.Buffer, cookie string, contentType string) (*http.Request, error) {
+func newFileUploadRequestPost(uri string, body *bytes.Buffer, cookie string, contentType string) (*http.Request, error) {
 
 	req, err := http.NewRequest("POST", uri, body)
 	req.Header.Set("Content-Type", contentType)
@@ -40,7 +33,7 @@ func newfileUploadRequestPost(uri string, body *bytes.Buffer, cookie string, con
 	return req, err
 }
 
-func newfileUploadRequest(uri string, params map[string]string, path string, cookie string) (*http.Request, error) {
+func newFileUploadRequest(uri string, params map[string]string, path string, cookie string) (*http.Request, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -67,11 +60,11 @@ func newfileUploadRequest(uri string, params map[string]string, path string, coo
 		return nil, err
 	}
 
-	return newfileUploadRequestPost(uri, body, cookie, writer.FormDataContentType())
+	return newFileUploadRequestPost(uri, body, cookie, writer.FormDataContentType())
 }
 
 func submitRequest(opts map[string]string, filename string, cookie string) string {
-	request, err := newfileUploadRequest("https://cses.fi/course/send.php", opts, filename, cookie)
+	request, err := newFileUploadRequest("https://cses.fi/course/send.php", opts, filename, cookie)
 	check(err)
 
 	client := &http.Client{}
@@ -86,6 +79,15 @@ func submitRequest(opts map[string]string, filename string, cookie string) strin
 	link, _ := doc.Find("a.current:nth-child(12)").Attr("href")
 
 	return link
+}
+
+func Login(csrf string, cookie string, username string, pass string) bool {
+
+	params := "csrf_token=" + csrf + "&nick=" + username + "&pass=" + pass
+	if loginRequest(params, cookie) == username {
+		return true
+	}
+	return false
 }
 
 func loginRequest(params string, cookie string) string {
@@ -110,24 +112,29 @@ func loginRequest(params string, cookie string) string {
 	return doc.Find(".account").Contents().Text()
 }
 
-func listRequest(cookie string) []*Problem {
-	req, err := http.NewRequest("GET", "https://cses.fi/problemset/list", nil)
+func ListRequest(cookie string) []*Problem {
+	req, err := http.NewRequest("GET", "https://cses.fi/problemset/", nil)
 	check(err)
 
+	// essential headers
 	req.Header.Set("Cookie", cookie)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	// non-essential headers
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15")
+	req.Header.Set("Host", "cses.fi")
 
 	resp, err := http.DefaultClient.Do(req)
 	check(err)
 	defer resp.Body.Close()
 
-	var arr = []*Problem{}
+	var arr  []*Problem
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	check(err)
 
 	doc.Find(".task").Each(func(i int, s *goquery.Selection) {
 
-		solved := "✘"
+		solved := "-"
 
 		a := s.Find("a")
 		link, _ := a.Attr("href")
@@ -146,8 +153,8 @@ func listRequest(cookie string) []*Problem {
 			st, _ := k.Attr("class")
 			if strings.Contains(st, "full") {
 				solved = "✔"
-			} else if "task-score icon " == st {
-				solved = "-"
+			} else if strings.Contains(st, "zero") {
+				solved = "✘"
 			}
 		})
 		arr = append(arr, &Problem{taskNumber, title, solved, percent})
@@ -176,7 +183,7 @@ func printResultRequest(link string, cookie string) (string, string, string) {
 	return status, text, verdict
 }
 
-func downloadTask(task string) string {
+func DownloadTask(task string) string {
 
 	req, err := http.NewRequest("GET", "https://cses.fi/problemset/task/"+task, nil)
 	check(err)
@@ -196,7 +203,7 @@ func downloadTask(task string) string {
 	return title + out
 }
 
-func newCookieCsrf() (string, string) {
+func NewCookieCsrf() (string, string) {
 	req, err := http.NewRequest("GET", "https://cses.fi/login/", nil)
 	check(err)
 
