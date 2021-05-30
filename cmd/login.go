@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+Copyright © 2021 UTSAV KRISHNAN github.com/ketankr9
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,13 +29,12 @@ import (
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Example: "cses-cli login",
+	Short: "authenticate to cses.fi server by username and password",
+	Long: `This command retrieves the csrf token and signs it to the server,
+reads the cookies and saves it in the config file along with the username
+Note: password is not saved in the config file and is only used to sign the csrf token
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if !doLogin() {
 			cobra.CompErrorln("failed to login")
@@ -74,7 +73,7 @@ func doLogin() bool {
 
 	s.Start()
 	wg.Wait()
-	ok := login(csrf, cookie, username, PASSWORD)
+	ok := Login(csrf, cookie, username, PASSWORD)
 	s.Stop()
 
 	if !ok {
@@ -88,13 +87,4 @@ func doLogin() bool {
 	cobra.CheckErr(viper.WriteConfig())
 
 	return true
-}
-
-func login(csrf string, cookie string, username string, pass string) bool {
-
-	params := "csrf_token=" + csrf + "&nick=" + username + "&pass=" + pass
-	if LoginRequest(params, cookie) {
-		return true
-	}
-	return false
 }

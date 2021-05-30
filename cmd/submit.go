@@ -25,13 +25,11 @@ import (
 var submitCmd = &cobra.Command{
 	Use:   "submit",
 	Args: cobra.ExactArgs(1),
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Example: "cses-cli submit 1068.Weird-Algorithm.cpp",
+	Short: "submit the solution file and fetch the status",
+	Long: `If the solution is ACCEPTED and github is configured, then it will push the solution to github,
+with limitation that the repo has to be public, since it uses github generated token`,
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		ghConfig := &GithubConfig{}
 

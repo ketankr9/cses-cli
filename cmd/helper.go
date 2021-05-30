@@ -136,7 +136,9 @@ func writeCodeFile(filename string, text string, template string) bool {
 	}
 	_, err = f.WriteString("/*\n" + text + "*/\n" + template)
 	if err != nil {
-		f.Close()
+		err := f.Close()
+		check(err)
+
 		return false
 	}
 

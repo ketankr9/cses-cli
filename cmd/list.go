@@ -1,5 +1,5 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+Copyright © 2021 UTSAV KRISHNAN github.com/ketankr9
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,15 +23,13 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Example: "cses-cli list, cses-cli list -r",
+	Short: "list all problem statements along with status",
+	Long: `Without any flag it lists all the problems from the cache.
+To invalidate/refresh/reload the problem list cache use flag '-r'
+If you are authenticated it will display the submission status along with the list.
+`,
 	Run: func(cmd *cobra.Command, args []string) {
-		//fmt.Println("list called")
 		if cmd.Flag("refresh").Value.String() == "true" {
 			UpdateProblemListCache(viper.GetString("cookie"))
 		}

@@ -48,7 +48,7 @@ func pushCommit(ref *github.Reference, tree *github.Tree, opts *GithubConfig) (e
 	}
 	parent.Commit.SHA = parent.SHA
 
-	commitMessage := fmt.Sprintf("file updated by %v [%v]" , opts.AuthorName, opts.AuthorEmail)
+	commitMessage := "file updated"
 	date := time.Now()
 	author := &github.CommitAuthor{Date: &date, Name: &opts.AuthorName, Email: &opts.AuthorEmail}
 	commit := &github.Commit{Author: author, Message: &commitMessage, Tree: tree, Parents: []github.Commit{*parent.Commit}}

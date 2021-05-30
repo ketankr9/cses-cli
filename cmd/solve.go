@@ -26,15 +26,14 @@ import (
 var solveCmd = &cobra.Command{
 	Use:   "solve",
 	Args: cobra.ExactArgs(1),
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
+	Example: "cses-cli solve 1068",
+	Short: "solve any problem identified by the task number",
+	Long: `This command will print the problem statement by default (use '-s' to disable it)
+By default the editor name is read from the config file to overwrite use like '-e subl', where subl is binary for sublime-text editor.
+The language preference is also read form the config file`,
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		if cmd.Flag("show").Value.String() == "true" {
+		if cmd.Flag("silent").Value.String() == "false" {
 			ShowProblem(args[0])
 		}
 
@@ -45,7 +44,7 @@ to quickly create a Cobra application.`,
 func init() {
 	rootCmd.AddCommand(solveCmd)
 
-	solveCmd.Flags().BoolP("show", "s", true, "print problem statement before solving")
+	solveCmd.Flags().BoolP("silent", "s", false, "do not print problem statement")
 	solveCmd.Flags().StringP("editor", "e", "", "use editor to solve the problem")
 	err := viper.BindPFlag("editor", solveCmd.Flags().Lookup("editor"))
 

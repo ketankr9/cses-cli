@@ -31,11 +31,8 @@ var (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "cses-cli",
-	Short: "A brief description of your application",
-	Long: `A longer description`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Short: "command line to solve probmens from https://cses.fi/problemset/",
+	Long: `command line to solve probmens from https://cses.fi/problemset/`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -58,32 +55,11 @@ func init() {
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is "+rootPath+"/config.*)")
-
-	//rootCmd.PersistentFlags().StringP("username","u",  "", "username on cses")
-	//err := viper.BindPFlag("username", rootCmd.PersistentFlags().Lookup("username"))
-	//cobra.CheckErr(err)
-
-	//rootCmd.PersistentFlags().StringP("csrf","t",  "", "csrf token")
-	//err := viper.BindPFlag("csrf", rootCmd.PersistentFlags().Lookup("csrf"))
-	//cobra.CheckErr(err)
-	//
-	//rootCmd.PersistentFlags().StringP("cookie","c",  "", "http cookie")
-	//err = viper.BindPFlag("cookie", rootCmd.PersistentFlags().Lookup("cookie"))
-	//cobra.CheckErr(err)
-
-	//rootCmd.PersistentFlags().StringP("rootPath","p",  rootPath, "path to store problem statements")
-	//err = viper.BindPFlag("rootPath", rootCmd.PersistentFlags().Lookup("rootPath"))
-	//cobra.CheckErr(err)
-
-
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "o", false, "Help message for toggle")
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	// disabling it for now
 	//viper.AutomaticEnv() // read in environment variables first to be overwritten by config
 
 	if cfgFile != "" {
@@ -96,7 +72,6 @@ func initConfig() {
 		viper.AddConfigPath("/etc/cses/")
 
 		viper.SetConfigName("config") // name of config file (without extension)
-		viper.SetConfigType("yaml") // REQUIRED if the config file does not have the extension in the name
 	}
 
 	// If a config file is found, read it in.

@@ -81,7 +81,16 @@ func submitRequest(opts map[string]string, filename string, cookie string) strin
 	return link
 }
 
-func LoginRequest(params string, cookie string) bool {
+func Login(csrf string, cookie string, username string, pass string) bool {
+
+	params := "csrf_token=" + csrf + "&nick=" + username + "&pass=" + pass
+	if loginRequest(params, cookie) == username {
+		return true
+	}
+	return false
+}
+
+func loginRequest(params string, cookie string) string {
 
 	body := strings.NewReader(params)
 	req, err := http.NewRequest("POST", "https://cses.fi/login", body)
@@ -97,14 +106,10 @@ func LoginRequest(params string, cookie string) bool {
 	check(err)
 	defer resp.Body.Close()
 
-	fmt.Println("Body", resp.Body)
-	//doc, err := goquery.NewDocumentFromReader(resp.Body)
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	check(err)
 
-	printResp(resp)
-
-	//return doc.Find(".account").Contents().Text()
-	return resp.StatusCode == 200
+	return doc.Find(".account").Contents().Text()
 }
 
 func ListRequest(cookie string) []*Problem {
