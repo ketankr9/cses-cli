@@ -1,34 +1,33 @@
-package main
+package cmd
 
 import (
 	"context"
 	"fmt"
+	"github.com/google/go-github/github"
+	"golang.org/x/oauth2"
 	"io/ioutil"
 	"path/filepath"
 	"time"
-
-	"github.com/google/go-github/github"
-	"golang.org/x/oauth2"
 )
 
-type githubConfig struct {
-	Token       string `json:"token"`
-	SourceRepo  string `json:"repository"`
-	AuthorName  string `json:"username"`
-	AuthorEmail string `json:"email"`
+type GithubConfig struct {
+	Token       string `mapstructure:"token"`
+	SourceRepo  string `mapstructure:"repository"`
+	AuthorName  string `mapstructure:"username"`
+	AuthorEmail string `mapstructure:"email"`
 }
 
 var client *github.Client
 var ctx = context.Background()
 
-func getTree(ref *github.Reference, opts *githubConfig, sourceFiles string) (tree *github.Tree, err error) {
+func getTree(ref *github.Reference, opts *GithubConfig, sourceFiles string) (tree *github.Tree, err error) {
 	content, err := ioutil.ReadFile(sourceFiles)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
 	}
 
-	entries := []*github.TreeEntry{
+	entries := []github.TreeEntry{
 		{
 			Path:    github.String(filepath.Base(sourceFiles)),
 			Type:    github.String("blob"),
@@ -41,7 +40,7 @@ func getTree(ref *github.Reference, opts *githubConfig, sourceFiles string) (tre
 	return tree, err
 }
 
-func pushCommit(ref *github.Reference, tree *github.Tree, opts *githubConfig) (err error) {
+func pushCommit(ref *github.Reference, tree *github.Tree, opts *GithubConfig) (err error) {
 
 	parent, _, err := client.Repositories.GetCommit(ctx, opts.AuthorName, opts.SourceRepo, *ref.Object.SHA)
 	if err != nil {
@@ -49,10 +48,10 @@ func pushCommit(ref *github.Reference, tree *github.Tree, opts *githubConfig) (e
 	}
 	parent.Commit.SHA = parent.SHA
 
-	commitMessage := "file updated"
+	commitMessage := fmt.Sprintf("file updated by %v [%v]" , opts.AuthorName, opts.AuthorEmail)
 	date := time.Now()
 	author := &github.CommitAuthor{Date: &date, Name: &opts.AuthorName, Email: &opts.AuthorEmail}
-	commit := &github.Commit{Author: author, Message: &commitMessage, Tree: tree, Parents: []*github.Commit{parent.Commit}}
+	commit := &github.Commit{Author: author, Message: &commitMessage, Tree: tree, Parents: []github.Commit{*parent.Commit}}
 	newCommit, _, err := client.Git.CreateCommit(ctx, opts.AuthorName, opts.SourceRepo, commit)
 	if err != nil {
 		return err
@@ -63,7 +62,7 @@ func pushCommit(ref *github.Reference, tree *github.Tree, opts *githubConfig) (e
 	return err
 }
 
-func updateFile(sourceFiles string, opts *githubConfig) bool {
+func updateFile(sourceFiles string, opts *GithubConfig) bool {
 
 	ts := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: opts.Token})
 	tc := oauth2.NewClient(ctx, ts)

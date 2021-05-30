@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"bufio"
@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -20,22 +19,24 @@ func check(e error) {
 	}
 }
 
-func validGithubConfig(opts *githubConfig) bool {
+func validGithubConfig(opts *GithubConfig) bool {
 	return opts.Token != "" && opts.SourceRepo != "" && opts.AuthorName != "" && opts.AuthorEmail != ""
 }
 
-func UserHomeDir() string {
-	if runtime.GOOS == "windows" {
-		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-		if home == "" {
-			home = os.Getenv("USERPROFILE")
-		}
-		return home
-	}
-	return os.Getenv("HOME")
-}
+//func UserHomeDir() string {
+//	if runtime.GOOS == "windows" {
+//		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+//		if home == "" {
+//			home = os.Getenv("USERPROFILE")
+//		}
+//		return home
+//	}
+//	return os.Getenv("HOME")
+//}
 
-func updateIfNew(scanner *bufio.Scanner, src *string, text string) {
+func UpdateIfNew(scanner *bufio.Scanner, src *string, text string) bool {
+	var changed bool = false
+
 	if *src == "" {
 		fmt.Print(text + ": ")
 	} else {
@@ -43,9 +44,15 @@ func updateIfNew(scanner *bufio.Scanner, src *string, text string) {
 	}
 	scanner.Scan()
 	val := scanner.Text()
+
 	if val != "" {
+		if val != *src {
+			changed = true
+		}
 		*src = val
 	}
+
+	return changed
 }
 
 func cacheSet(filename string, data interface{}, root string) {
@@ -82,9 +89,9 @@ func writeTask(filename string, text string, root string){
 	check(err)
 }
 
-func updateListByTask(task string, status string, root string) {
-	var problems = []*Problem{}
-	cacheGet("problemList.json", &problems, root)
+func updateListByTask(task string, status string, rootPath string) {
+	var problems []*Problem
+	cacheGet("problemList.json", &problems, rootPath)
 
 	for _, v := range problems {
 		if task == v.Task {
@@ -92,7 +99,7 @@ func updateListByTask(task string, status string, root string) {
 			break
 		}
 	}
-	cacheSet("problemList.json", problems, root)
+	cacheSet("problemList.json", problems, rootPath)
 }
 
 func getTemplate(ext string) string {
