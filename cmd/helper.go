@@ -81,7 +81,7 @@ func cacheGet(filename string, ret interface{}, root string) bool {
 	return true
 }
 
-func writeTask(filename string, text string, root string){
+func writeTask(filename string, text string, root string) {
 	f, err := os.Create(filepath.Join(root, filename))
 	defer f.Close()
 	check(err)
@@ -116,7 +116,7 @@ func getTaskFromCache(task string, root string) (string, string) {
 	output, err := exec.Command("bash", "-c", "lynx -dump "+path).Output()
 	check(err)
 	data := string(output)
-	
+
 	for k, v := range unicodeMap {
 		data = strings.Replace(data, k, v, -1)
 	}

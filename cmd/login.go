@@ -28,9 +28,9 @@ import (
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
-	Use:   "login",
+	Use:     "login",
 	Example: "cses-cli login",
-	Short: "authenticate to cses.fi server by username and password",
+	Short:   "authenticate to cses.fi server by username and password",
 	Long: `This command retrieves the csrf token and signs it to the server,
 reads the cookies and saves it in the config file along with the username
 Note: password is not saved in the config file and is only used to sign the csrf token

@@ -128,7 +128,7 @@ func ListRequest(cookie string) []*Problem {
 	check(err)
 	defer resp.Body.Close()
 
-	var arr  []*Problem
+	var arr []*Problem
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	check(err)
 

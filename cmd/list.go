@@ -22,9 +22,9 @@ import (
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:   "list",
+	Use:     "list",
 	Example: "cses-cli list, cses-cli list -r",
-	Short: "list all problem statements along with status",
+	Short:   "list all problem statements along with status",
 	Long: `Without any flag it lists all the problems from the cache.
 To invalidate/refresh/reload the problem list cache use flag '-r'
 If you are authenticated it will display the submission status along with the list.
