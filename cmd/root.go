@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	cfgFile string
+	cfgFile  string
 	rootPath string
 )
 
@@ -32,7 +32,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "cses-cli",
 	Short: "command line to solve probmens from https://cses.fi/problemset/",
-	Long: `command line to solve probmens from https://cses.fi/problemset/`,
+	Long:  `command line to solve probmens from https://cses.fi/problemset/`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

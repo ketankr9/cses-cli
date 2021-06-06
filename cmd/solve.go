@@ -24,10 +24,10 @@ import (
 
 // solveCmd represents the solve command
 var solveCmd = &cobra.Command{
-	Use:   "solve",
-	Args: cobra.ExactArgs(1),
+	Use:     "solve",
+	Args:    cobra.ExactArgs(1),
 	Example: "cses-cli solve 1068",
-	Short: "solve any problem identified by the task number",
+	Short:   "solve any problem identified by the task number",
 	Long: `This command will print the problem statement by default (use '-s' to disable it)
 By default the editor name is read from the config file to overwrite use like '-e subl', where subl is binary for sublime-text editor.
 The language preference is also read form the config file`,

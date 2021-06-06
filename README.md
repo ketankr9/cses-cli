@@ -152,4 +152,4 @@ Github: cses-solutions ✔
 *	Supports only C++ currently, will add support for other languages on request. **UPDATE: Done**
 *	A modifiable template code file. **UPDATE: Done**
 *	Auto commit to Github repository **UPDATE: Done**
-*	Clean LaTex based $equation$ from problem statement. Eg $1 ≤ n ≤ 10^6$
+*	Clean LaTex based $equation$ from problem statement. Eg $1 ≤ n ≤ 10^6$ **UPDATE: Done**

@@ -23,10 +23,10 @@ import (
 
 // submitCmd represents the submit command
 var submitCmd = &cobra.Command{
-	Use:   "submit",
-	Args: cobra.ExactArgs(1),
+	Use:     "submit",
+	Args:    cobra.ExactArgs(1),
 	Example: "cses-cli submit 1068.Weird-Algorithm.cpp",
-	Short: "submit the solution file and fetch the status",
+	Short:   "submit the solution file and fetch the status",
 	Long: `If the solution is ACCEPTED and github is configured, then it will push the solution to github,
 with limitation that the repo has to be public, since it uses github generated token`,
 

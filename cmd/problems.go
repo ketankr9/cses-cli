@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -139,5 +140,13 @@ func getTask(task string) (string, string, bool) {
 		writeTask(filename, text, rootPath)
 	}
 	title, text := getTaskFromCache(task, rootPath)
+
+	text = cleanMathSyntax(text)
+
 	return title, text, true
+}
+
+func cleanMathSyntax(text string) string {
+	re := regexp.MustCompile("\\$([^$]*)\\$")
+	return re.ReplaceAllString(text, "${bold}$1${normal}")
 }
